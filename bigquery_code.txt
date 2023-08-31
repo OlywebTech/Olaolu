@@ -1,0 +1,230 @@
+
+CREATE TABLE Customer (
+    customer_id varchar primary key,
+    customer_name varchar,
+    segment varchar,
+    age int,
+    country varchar,
+    city varchar,
+    state varchar,
+    postal_code bigint,
+    region varchar);
+
+
+CREATE TABLE Product (
+    product_id varchar primary key,
+    category varchar,
+    sub_category varchar,
+    product_name varchar);
+
+
+
+CREATE TABLE Sales (
+    order_line int primary key,
+    order_id varchar,
+    order_date date,
+    ship_date date,
+    ship_mode varchar,
+    customer_id varchar,
+    product_id varchar,
+    sales numeric,
+    quantity int,
+    discount numeric,
+    profit numeric);
+
+
+select * from DB.Customer
+
+select * from DB.Product
+
+select * from DB.Sales
+
+
+select * from DB.Customer where city in ('Philadephia','Seattle','Chicago');
+
+select * from DB.Customer where age between 20 and 30;
+
+select * from DB.Sales where ship_Date between '2015-04-01' and '2016-04-01';
+
+select * from DB.Customer where customer_name like 'J%';
+/* where customer name start with J */
+
+select * from DB.Customer where customer_name like '%Nelson';/* where customer name ends with with Nelson */
+select * from DB.Customer where customer_name like '%Nelson%'; /* where customer name have Nelson */
+select * from DB.Customer where customer_name like '___ %'; /* where customer first name is full charcher and other name can be any nuber of chacter */
+
+select distinct city from DB.Customer where city not like 'S%'; /* city not start with S */
+
+select * from DB.Sales where Product_ID like 'OFF%';
+
+select * from DB.Customer where Customer_Name like '____ ____'; /* customer name is first name and last name is 4 charcters */
+select * from DB.Customer order by city, Age desc;
+
+select * from DB.Sales where Product_ID like 'OFF%' order by Sales desc;
+/*LIMIT */
+select * from DB.Sales where Product_ID like 'OFF%' order by Sales desc limit 10;
+
+/*AS*/
+select Customer_ID as ID, Customer_name as Name, Age as Cust_age from DB.Customer;
+
+/*COUNT*/
+select count (order_line) as N_of_products_purchased,
+count(Distinct Order_id) as N_of_orders from
+DB.Sales where customer_id ='CG-12520';
+
+/*SUM*/
+select sum(Profit) as Off_supplies_profit from DB.Sales where Product_ID like 'OFF%';
+ 
+select Category, Sub-category, count(Product_ID) as product_count from DB.Product group by Category, Sub_Category;
+
+/*CASE WHEN */
+select distinct region from DB.Customer;
+
+select *,
+case when Region = 'Central' then 'CW'
+when Region = 'West' then 'CW'
+when Region = 'East' then 'SE'
+else 'SE' 
+end as HQ
+from DB.Customer;
+
+create table DB.Customer_20_60 as select * from DB.Customer where age between 20 and 30;
+
+
+
+Create table DB.Sales_2015 as select * from DB.Sales 
+where ship_date between '2015-01-01' and '2015-12-31';
+
+
+select DB.Customer_ID from DB.Sales_2015 order by Customer_ID;
+
+select 
+a.Order_Line,
+a.Product_ID,
+a.Customer_ID,
+a.Sales,
+b.customer_name,
+b.Age
+from DB.Sales_2015 as a
+inner join DB.Customer_20_60 as b
+on a.customer_ID = b.customer_ID
+order by customer_id;
+
+/* LEFT JOIN */
+select 
+a.Order_Line,
+a.Product_ID,
+a.Customer_ID,
+a.Sales,
+b.customer_name,
+b.Age
+from DB.Sales_2015 as a
+left join DB.Customer_20_60 as b
+on a.customer_ID = b.customer_ID
+order by customer_id;
+
+/*RIGHT JOIN */
+select 
+a.Order_Line,
+a.Product_ID,
+b.Customer_ID,
+a.Sales,
+b.customer_name,
+b.Age
+from DB.Sales_2015 as a
+right join DB.Customer_20_60 as b
+on a.customer_ID = b.customer_ID
+order by customer_id;
+
+/*FULL JOIN */
+select
+a.Order_Line,
+a.Product_ID,
+a.Customer_ID,
+b.Customer_ID,
+a.Sales,
+b.Customer_name,
+b.Age
+from DB.Sales_2015 as a
+full join DB.Customer_20_60 as b
+on a.Customer_ID = b.Customer_ID
+order by a.Customer_ID, b.Customer_ID;
+
+
+/*CROSS JOIN */
+create table DB_1.month_values (MM INT64);
+create table DB_1.year_values (YYYY INT64);
+
+insert into DB_1.month_values values (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12);
+insert into DB_1.year_values values (2011),(2012),(2013),(2014),
+(2015),(2016),(2017),(2018),(2019);
+
+select * from DB_1.month_values;
+select * from DB_1.year_values;
+
+
+select YYYY,MM
+from DB_1.year_values, DB_1.month_values 
+order by YYYY,MM;
+
+/*EXCEPT*/
+select customer_id from DB.Sales_2015
+except DISTINCT
+select customer_id from DB.Customer_20_60
+order by customer_id;
+
+
+/*UNION  ALL/ DISTINCT*/
+select customer_id from DB.Sales_2015
+union DISTINCT 
+select customer_id from DB.Customer_20_60;
+
+  /*
+CREATE VIEW IF
+  you dont want TO show your customer everything IN your database used
+CREATE VIEW
+  */
+SELECT
+  a.order_line,
+  a.order_id,
+  b.customer_name,
+  b.city,
+  b.state,
+  b.country
+FROM
+  DB.Sales AS a
+LEFT JOIN
+  DB.Customer AS b
+ON
+  a.customer_id = b.customer_id
+ORDER BY
+  a.order_line;
+
+/*String Functions  used mostly when one 
+to retrieve email and phone numbers*/
+select *, length(Customer_name) as Cust_len
+from DB.Customer
+where age > 30;
+
+/*LOWER TO UPPER CASE VICE VERSA*/
+select *, upper(Customer_name), lower(customer_name) from
+DB.Customer;
+/*PREPLACE*/
+select *,
+replace(Country,'United States','US') as Country_New
+from DB.Customer;
+
+/*TRIM*/
+select trim(leading ' 'from' Start-Tech Academy ');
+select trim(trailing ' 'from' Start-Tech Academy ');
+select trim(both ' 'from' Start-Tech Academy ');
+select rtrim(' Start-Tech Academy ','');
+select ltrim(' Start-Tech Academy ','');
+
+/* CONCATENATION*/
+select 
+Customer_id,
+City||","||State||","|| Country as Add_1, concat(City,',',State,',',Country) 
+as Add_2 from DB.Customer;
+
+

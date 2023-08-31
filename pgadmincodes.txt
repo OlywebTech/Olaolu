@@ -1,0 +1,317 @@
+
+
+CREATE TABLE customer (
+    customer_id varchar primary key,
+    customer_name varchar,
+    segment varchar,
+    age int,
+    country varchar,
+    city varchar,
+    state varchar,
+    postal_code bigint,
+    region varchar);
+
+
+CREATE TABLE product (
+    product_id varchar primary key,
+    category varchar,
+    sub_category varchar,
+    product_name varchar);
+
+
+
+CREATE TABLE sales (
+    order_line int primary key,
+    order_id varchar,
+    order_date date,
+    ship_date date,
+    ship_mode varchar,
+    customer_id varchar,
+    product_id varchar,
+    sales numeric,
+    quantity int,
+    discount numeric,
+    profit numeric);
+
+
+select * from customer
+
+select * from product
+
+select * from sales
+
+
+copy customer from 'C:\Program Files\PostgreSQL\15\dataset\Data\customer.csv' CSV header ;
+
+copy product from 'C:\Program Files\PostgreSQL\15\dataset\Data\Product.csv' CSV header ;
+
+copy sales from 'C:\Program Files\PostgreSQL\15\dataset\Data\Sales.csv' CSV header ;
+
+
+
+select * from customer where city in ('Philadephia', 'Seattle');
+
+select * from customer where city = 'Philadephia' or city ='Seattle';
+
+select * from customer where age between 20 and 30;
+same as below
+select * from customer where age >=20 and age <=30;
+
+select * from customer where age not between 20 and 30;
+
+select * from sales where ship_date between '2015-04-01' and '2016-04-01';
+
+select * from customer where customer_name like 'J%'; /* where customer_name J start the name*/
+
+select * from customer where customer_name like '%Nelson'; /* where customer_name ends with Nelson */
+
+select * from customer where customer_name like '%Nelson%'; /% where customer name have Nelson */
+select * from customer where customer_name  like '___ %'; /* where customer first name
+is full character and other name can be any number characters by using 3 under score and  space and percent*/
+ select distinct city from customer where city not like 'S%';  --city not start with S character-- 
+ 
+select * from customer where state= 'California' order by customer_name;
+select * from customer where state ='California' order by customer_name desc;
+select * from customer order by city asc, customer_name desc;
+  
+select * from customer order by 2 desc;
+select * from customer order by age desc;
+  /*LIMIT*/
+  select * from customer where age >=25 order by age desc limit 8;
+  
+  select * from customer where age >=25 order by  age asc limit 10;
+  
+  /*AS*/
+  select customer_id as "Serial Number", customer_name as name, age as customer_age from customer;
+  
+  /*COUNT*/
+  select * from sales;
+  select count (*) from sales;
+  select count (order_line) as "Number of Products Ordered", count (distinct order_id) as
+  "Number of Orders" from sales where customer_id = 'CG-12520';
+  
+  /*SUM*/
+  select sum(Profit) as "Total Profit" from sales;
+   select sum(quantity)as "Total Qauntity" from sales where product_id = 'FUR-TA-10000577';
+   
+   /*AVERAGE AVG*/
+   select avg(age) as "Average Customer age" from customer;
+   select avg(sales *.10) as "Average Commision Values" from sales; /* avg comm values */
+
+ /*MIN MAX */
+   select min(sales)as "Minimun Sales Values Jun 15" from sales where order_date between '2015-06-01'
+   and '2015-06-30';
+
+ select sales from sales where order_date between '2015-06-01' and '2015-06-30'
+   order by sales asc; /* comfirm the min value in sales */
+
+select max(sales)as "Maximun Sales Values June 15" from sales where order_date between '2015-06-01'
+   and '2015-06-30'; /* for max value of sales*/
+    select sales from sales where order_date between '2015-06-01' and '2015-06-30'
+   order by sales desc; /* comfirm the max value in sales */
+
+select region, count(customer_id) as customer_count from customer group by region;
+/* region and customer count table*/
+
+select region, state, avg(age) as age, count(customer_id) as customer_count from 
+customer group by region, state;
+/* region, state, age and customer count table*/
+select product_id, sum(quantity) as quantity_sold from sales 
+group by product_id order by quantity_sold desc;
+/* product id and quantity sold table */
+
+select customer_id, min(sales) as minimum_sales,
+max(sales) as max_sales, 
+avg(sales) as average_sales,
+sum(sales)as total_sales from sales group by customer_id order by total_sales desc
+limit 5; /*customer id, min sales max sales avg sales and total sales tables,
+with total sales of 25043.05, avg sales 1669.53, max sales 22638.48, 
+min sales is 3.488, this can be presented is dasboard 5 means top 5*/
+
+select region, count(customer_id) as customer_count 
+from customer group by region having count (customer_id)
+>200;/* region, csutomer count >200 table */
+
+select region, count(customer_id) as customer_count from customer
+where customer_Name like 'A%' group by region; 
+/* customer whose name start with A in the 4 region */
+
+select region, count(customer_id) as customer_count from customer
+where customer_Name like 'A%' group by region having count
+(customer_id) > 15; 
+
+
+
+/*Creating sales table of year 2015*/
+
+Create table sales_2015 as select * from sales 
+where ship_date between '2015-01-01' and '2015-12-31';
+select count(*) from sales_2015; --2131
+select count(distinct customer_id) from sales_2015;--578
+
+/* Customers with age between 20 and 60 */
+create table customer_20_60 as select * from customer
+where age between 20 and 60;
+select count (*) from customer_20_60;--597
+
+/* INNER JOIN*/
+select customer_id from sales_2015 order by customer_id;
+
+select customer_id from customer_20_60 order by customer_id;
+
+
+select
+a.order_line,
+a.product_id,
+a.customer_id,
+a.sales,
+b.customer_name,
+b.age
+from sales_2015 as a 
+inner join customer_20_60 as b
+on a.customer_id = b.customer_id
+order by customer_id;
+
+
+/*LEFT JOIN*/
+select customer_id from sales_2015 order by customer_id;
+
+select customer_id from customer_20_60 order by customer_id;
+
+select 
+a.order_line,
+a.product_id,
+a.customer_id,
+a.sales,
+b.customer_name,
+b.age
+from sales_2015 as a 
+left join customer_20_60 as b
+on
+a.customer_id = b.customer_id
+order by customer_id;
+
+/* RIGHT JOIN */
+select 
+a.order_line,
+a.product_id,
+b.customer_id,
+a.sales,
+b.customer_name,
+b.age
+from sales_2015 as a
+right join customer_20_60 as b
+on a.customer_id =b.customer_id
+order by customer_id;
+
+/* FULL JOIN */
+
+select
+a.order_line,
+a.product_id,
+a.customer_id,
+a.sales,
+b.customer_name,
+b.age,
+b.customer_id
+from sales_2015 as a
+full join customer_20_60 as b
+on a.customer_id = b.customer_id
+order by a.customer_id, b.customer_id;
+
+/*CROSS JOIN */
+create table month_values (MM integer);
+create table year_values (YYYY integer);
+
+insert into month_values values (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11),(12);
+insert into year_values values (2011),(2012),(2013),(2014),
+(2015),(2016),(2017),(2018),(2019);
+
+select * from month_values;
+select * from year_values;
+
+
+select a.YYYY,b.MM
+from year_values as a, month_values as b
+order by a.YYYY, b.MM;
+
+select customer_id from sales_2015
+intersect
+select customer_id from customer_20_60
+
+select customer_id from sales_2015
+except
+select customer_id from customer_20_60
+order by customer_id;
+
+/*UNION*/
+select customer_id from sales_2015
+union 
+select customer_id from customer_20_60
+order by customer_id;
+
+
+/*CREATE VIEW if you dont want to show your customer everything 
+in your database used CREATE VIEW */
+
+create view logistics as
+select a.order_line, a.order_id, b.customer_name, b.city,
+b.state, b.country
+from sales as a
+left join customer as b
+on a.customer_id = b.customer_id
+order by a.order_line;
+
+select * from logistics;
+
+drop view logistics;
+
+
+/* INdex*/
+create index mon_idx
+on month_values(MM);
+
+drop index mon_idx;
+
+drop index if exist mon_idx;
+
+/* String functions*/
+select customer_name, length (customer_name) as characters_num 
+from customer
+where age > 30;
+
+/* UPPER/LOWER CONVERTION*/
+select upper('Start-Tech Academy');
+
+select lower('Start-Tech Academy');
+
+/*REPLACE*/
+select customer_name,
+country,
+replace(country,'United States','US') as country_new
+from customer;
+
+/*TRIM, LTRIM & RTRIM */
+select trim(leading ' 'from' Start-Tech Academy ');
+select trim(trailing ' 'from' Start-Tech Academy ');
+select trim(both ' 'from' Start-Tech Academy ');
+select rtrim(' Start-Tech Academy ','');
+select ltrim(' Start-Tech Academy ','');
+
+
+/*CONCATENATION*/
+select 
+customer_name,
+city||','||state||','|| country as address from customer;
+
+
+/*SUBSTRING*/
+select customer_id, customer_name,substring(customer_id for 2 )
+as cust_group
+from customer
+where substring(customer_id for 2) ='AB';
+
+select customer_id, customer_name,substring(customer_id from 4 for 5)
+as cust_group
+from customer
+where substring(customer_id for 2) ='AB';
